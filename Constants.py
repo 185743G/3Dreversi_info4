@@ -1,0 +1,10 @@
+EMPTY = 0  # no object in acell
+WHITE = 1  # white storn in a cell
+BLACK = 2  # black storn in a sell
+WALL = 3  # recognizer for over the board
+ThreeD = 3
+X = 0  # X-axis
+Y = 1  # Y-axis
+Z = 2  # Z-axis
+symbols = ['E', '○', '●', 'W']  # provisional graphics
+players = ["none", "White", "Black"]  # player name list
