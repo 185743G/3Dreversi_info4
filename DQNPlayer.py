@@ -64,9 +64,8 @@ class DQNPlayer:
             if i > 10:
                 #                print("Exceed Pos Find"+str(board.board)+" with "+str(act))
                 acts = [board.get_flatten_point(p) for p in self.last_board.can_put_stone_all()]
-                # if len(acts) == 0:
-                #     return [-2, -2, -2]  # passを返す
-                continue
+                if len(acts) == 0:
+                    continue  # passを返す
                 act = acts[random.randrange(len(acts))]
                 if type(act) is not int:
                     act = act[0]
