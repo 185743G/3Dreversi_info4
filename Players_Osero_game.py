@@ -14,7 +14,7 @@ class Players_Osero_game:
         self.reader = In_Out_put(size_val)
         self.L = self.reader.LENGTH
         self.board = Board(self.L)
-        self.print_Usage()
+#        self.print_Usage()
         self.players = [DQNPlayer(WHITE), RandomPlayer(BLACK)]
 
     # L = (L-2)^3 width board will crate
@@ -56,7 +56,7 @@ class Players_Osero_game:
         else:
             self.passmater = 0
             print("指定した座標には置けませんでした")
-        self.board.open() #ここで盤面を表示
+#        self.board.open() #ここで盤面を表示
 
     def print_Usage(self):
         print("---    遊び方    ---\n パス: pass \n ゲームの終了 : quit\n 座標を入れる : 1 ~ %d\n" % (self.L - 1))

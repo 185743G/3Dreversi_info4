@@ -158,7 +158,7 @@ class Board:
         self.turn = 3 - self.turn
         self.ENEMY = 3 - self.turn
         self.ALLY = self.turn
-        print("！！%sのターン！！\n" % players[self.turn])
+#        print("！！%sのターン！！\n" % players[self.turn])
 
     def set_Next_Position(self, pos, dirc):
         pos = [pos[X] + dirc[X],pos[Y] + dirc[Y],pos[Z] + dirc[Z]]
@@ -209,4 +209,3 @@ class Board:
                             flip_pos_list.append(j)
         for k in flip_pos_list:
             self.setCell(k, self.ALLY)
-        print(flip_pos_list)
