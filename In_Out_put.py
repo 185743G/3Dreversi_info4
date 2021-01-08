@@ -3,13 +3,16 @@ from Constants import ThreeD, X, Y, Z
 
 class In_Out_put:
 
-    def __init__(self):
+    def __init__(self,val):
         self.QUIT = -1
         self.PASS = -2
         self.COMMAND = 2
         self.ONEMORE = 3
         self.PCQUIT = False
-        self.LENGTH = self.select_size()
+        if val == 0:
+            self.LENGTH = self.select_size()
+        else:
+            self.LENGTH = (val+2)*2
 
     def is_position(self, char):
         result = False

@@ -5,11 +5,11 @@ from RandomPlayer import RandomPlayer
 
 
 class Players_Osero_game:
-    def __init__(self):
+    def __init__(self,size_val):
         self.PASS = -2
         self.passmater = 0
         self.isDpass = False
-        self.reader = In_Out_put()
+        self.reader = In_Out_put(size_val)
         self.L = self.reader.LENGTH
         self.board = Board(self.L)
         self.print_Usage()
