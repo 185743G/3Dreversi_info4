@@ -1,7 +1,9 @@
 from Board import Board
 from Constants import WHITE, BLACK, EMPTY
+from DQNPlayer import DQNPlayer
 from In_Out_put import In_Out_put
 from RandomPlayer import RandomPlayer
+import numpy as np
 
 
 class Players_Osero_game:
@@ -13,8 +15,8 @@ class Players_Osero_game:
         self.L = self.reader.LENGTH
         self.board = Board(self.L)
         self.print_Usage()
-        self.players = [RandomPlayer(WHITE), RandomPlayer(BLACK)]
-        
+        self.players = [DQNPlayer(WHITE), RandomPlayer(BLACK)]
+
     # L = (L-2)^3 width board will crate
 
     def is_continue(self):
@@ -34,7 +36,10 @@ class Players_Osero_game:
             input_pos = self.players[0].act(self.board)
         elif self.board.turn == BLACK:
             input_pos = self.players[1].act(self.board)
-        print(input_pos)
+
+
+        if type(input_pos) is np.int64:
+            input_pos = self.board.get_unflatten_point(input_pos)
         if self.is_not_Quit() == False:
             print("Thank you for playing")
             self.passmater = 0

@@ -1,5 +1,5 @@
 from Constants import WHITE, BLACK, EMPTY, WALL, ThreeD, players, symbols, X, Y, Z
-
+import numpy as np
 
 class Board:
     # borad control and board instance in this class.
@@ -15,6 +15,25 @@ class Board:
         self.L = length
         self.board = [[[0] * length for i in range(length)] for i in range(length)]
         self.initialize(length)
+
+    def get_flattend_board(self):
+        return np.array(self.board).flatten()
+
+    # unflattenなインデックスをflattenにして返す.
+    def get_flatten_point(self, flatten_point):
+        a = flatten_point[0] * self.L*self.L
+        b = a + flatten_point[1] * self.L
+        ret = b + flatten_point[2]
+        return ret
+
+    # flattenなインデックスをunflatternなポイントに返す
+    def get_unflatten_point(self, i):
+        z = i // (self.L*self.L)
+        mod = i % (self.L*self.L)
+        y = mod // self.L
+        mod = mod % self.L
+        x = mod
+        return [z, y, x]
 
     def initialize(self, length):  # borad initializer
         self.turn = WHITE
@@ -93,6 +112,9 @@ class Board:
             # if game is over,select winner
             self.set_winner(num_Stones)
 
+    # def get_winner(self):
+
+
     def set_winner(self, num_Stones):
     # test cord for to show final place
 #        for c in range(self.z):
@@ -110,6 +132,20 @@ class Board:
             self.winner = WALL
         print("%d　対　%d　勝者は...%s!!!\n" %( num_Stones[WHITE],num_Stones[BLACK],players[self.winner]))
         return self.winner
+
+    def get_possible_pos(self):
+        pos=[]
+        # for i in range(64):
+        #     if self.board[i]==EMPTY:
+        #         pos.append(i)
+        for z in range(self.z):
+            for y in range(self.y):
+                for x in range(self.x):
+                    point = [x,y,z]
+                    if self.board[z][y][x]==EMPTY:
+                        pos.append(point)
+        return pos
+
 
     def chk_Cell_Ahead(self, pos, dirc):
         global X, Y, Z

@@ -1,0 +1,13 @@
+.idea/.gitignore
+.idea/3Dreversi_info4.iml
+.idea/misc.xml
+.idea/modules.xml
+.idea/vcs.xml
+.idea/inspectionProfiles/profiles_settings.xml
+__pycache__/Board.cpython-37.pyc
+__pycache__/Constants.cpython-37.pyc
+__pycache__/DQNPlayer.cpython-37.pyc
+__pycache__/In_Out_put.cpython-37.pyc
+__pycache__/MLP.cpython-37.pyc
+__pycache__/Players_Osero_game.cpython-37.pyc
+__pycache__/RandomPlayer.cpython-37.pyc
