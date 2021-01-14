@@ -16,6 +16,7 @@ class DQNPlayer:
     def __init__(self, turn, name="DQN", e=1, dispPred=False):
         self.name = name
         self.myturn = turn
+        self.enemyturn = 3-turn
         self.model = MLP(216, 256, 216) # 216(=6*6*6)じゃないとエラーが起きる
         self.optimizer = optimizers.SGD()
         self.optimizer.setup(self.model)

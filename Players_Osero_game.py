@@ -2,9 +2,8 @@ from Board import Board
 from Constants import WHITE, BLACK, EMPTY
 from DQNPlayer import DQNPlayer
 from In_Out_put import In_Out_put
-from RandomPlayer import RandomPlayer
+from RandomPlayer import RandomPlayer,GreedyPlayer,HumblePlayer,GenLPlayer
 import numpy as np
-
 
 class Players_Osero_game:
     def __init__(self,size_val):
@@ -15,7 +14,10 @@ class Players_Osero_game:
         self.L = self.reader.LENGTH
         self.board = Board(self.L)
 #        self.print_Usage()
-        self.players = [DQNPlayer(WHITE), RandomPlayer(BLACK)]
+#        self.players = [DQNPlayer(WHITE), RandomPlayer(BLACK)]
+#        self.players = [DQNPlayer(WHITE), GreedyPlayer(BLACK)]
+#        self.players = [DQNPlayer(WHITE), HumblePlayer(BLACK)]
+        self.players = [GenLPlayer(WHITE), RandomPlayer(BLACK)]
 
     # L = (L-2)^3 width board will crate
 
@@ -60,3 +62,4 @@ class Players_Osero_game:
 
     def print_Usage(self):
         print("---    遊び方    ---\n パス: pass \n ゲームの終了 : quit\n 座標を入れる : 1 ~ %d\n" % (self.L - 1))
+
