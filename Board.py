@@ -16,7 +16,7 @@ class Board:
         self.board = [[[0] * length for i in range(length)] for i in range(length)]
         self.initialize(length)
 
-    def get_flattend_board(self):
+    def get_flattend_board(self):#リスト形式でboard情報を得る
         return np.array(self.board).flatten()
 
     # unflattenなインデックスをflattenにして返す.
@@ -35,7 +35,7 @@ class Board:
         x = mod
         return [z, y, x]
 
-    def initialize(self, length):  # borad initializer
+    def initialize(self, length):  # boardにオセロ の初期配置をする関数
         self.turn = WHITE
         self.ENEMY = 3 - self.turn
         self.ALLY = self.turn
@@ -72,7 +72,7 @@ class Board:
 #                print("")
 #            print("")
 
-    def open(self):
+    def open(self):#ボードをターミナル上に表示する
         num_Stones = [0] * len(players)
 
         for i in range(self.z - 2):
@@ -95,7 +95,7 @@ class Board:
                             num_Stones[BLACK] += 1
                 print("")
 
-    def chk_win(self,isDpass):
+    def chk_win(self,isDpass):#勝利判定
         num_Stones = [0] * len(players)
 
         for i in range(self.z - 2):
@@ -115,7 +115,7 @@ class Board:
     # def get_winner(self):
 
 
-    def set_winner(self, num_Stones):
+    def set_winner(self, num_Stones):#勝利判定できる盤面になればこの関数で勝者を調べる
     # test cord for to show final place
 #        for c in range(self.z):
 #            for d in range(self.y):
@@ -130,7 +130,7 @@ class Board:
             self.winner = WHITE
         elif num_Stones[WHITE] == num_Stones[BLACK]:
             self.winner = WALL
-        print("%d　対　%d　勝者は...%s!!!\n" %( num_Stones[WHITE],num_Stones[BLACK],players[self.winner]))
+#        print("%d　対　%d　勝者は...%s!!!\n" %( num_Stones[WHITE],num_Stones[BLACK],players[self.winner]))
         return self.winner
 
     def get_possible_pos(self):
@@ -138,20 +138,18 @@ class Board:
         # for i in range(64):
         #     if self.board[i]==EMPTY:
         #         pos.append(i)
-        for z in range(self.z):
-            for y in range(self.y):
-                for x in range(self.x):
-                    point = [x,y,z]
-                    if self.board[z][y][x]==EMPTY:
+        for z in range(self.z-2):
+            for y in range(self.y-2):
+                for x in range(self.x-2):
+                    point = [x+1,y+1,z+1]
+                    if self.board[z+1][y+1][x+1]==EMPTY:
                         pos.append(point)
         return pos
 
 
-    def chk_Cell_Ahead(self, pos, dirc):
+    def chk_Cell_Ahead(self, pos, dirc):#位置pos+周囲一マスのうちのどこか(dirc)のマスを調べる
         global X, Y, Z
         return self.board[pos[X] + dirc[X]][pos[Y] + dirc[Y]][pos[Z] + dirc[Z]]
-
-    #         bの座標からDir動いた座標のcellを確認
 
     def change_turn(self):
         # change turn counter and show whose turn is now
@@ -163,7 +161,29 @@ class Board:
     def set_Next_Position(self, pos, dirc):
         pos = [pos[X] + dirc[X],pos[Y] + dirc[Y],pos[Z] + dirc[Z]]
         return pos
-
+    
+    def greedy(self,choice):
+        num_stone_get = []
+        greedychoices = []
+        for i in choice:
+            num_stone_get.append(len(self.get_flip_list(i)))
+        for j in range(len(choice)):
+            if num_stone_get[j] == max(num_stone_get):
+                greedychoices.append(choice[j])
+        return greedychoices
+        
+    def humble(self,choice):
+        num_stone_get = []
+        humblechoices = []
+        for i in choice:
+            num_stone_get.append(len(self.get_flip_list(i)))
+        for j in range(len(choice)):
+            if num_stone_get[j] == min(num_stone_get):
+                humblechoices.append(choice[j])
+        return humblechoices
+            
+            
+    
     def can_put_stone_all(self):
         points = []
         for z in range(self.z-2):
@@ -209,3 +229,21 @@ class Board:
                             flip_pos_list.append(j)
         for k in flip_pos_list:
             self.setCell(k, self.ALLY)
+
+    def get_flip_list(self, pos):
+        here = [0, 0, 0]
+#        self.setCell(pos, self.ALLY)
+        flip_pos_list = [pos]
+        for i in range(len(self.direction)):
+            if self.direction[i] != here:
+                p = self.set_Next_Position(pos, here)
+                pos_list = []
+                while (self.chk_Cell_Ahead(p, self.direction[i]) == self.ENEMY):
+                    p = self.set_Next_Position(p, self.direction[i])
+                    pos_list.append(p)
+                    if self.chk_Cell_Ahead(p, self.direction[i]) == self.ALLY:
+                        for j in pos_list:
+                            flip_pos_list.append(j)
+                            
+        return flip_pos_list
+
