@@ -19,6 +19,11 @@ class Board:
     def get_flattend_board(self):#リスト形式でboard情報を得る
         return np.array(self.board).flatten()
 
+
+    def state(self):#現在の状況をコピーしてreturnする。
+        board_state = copy.deepcopy(self.board)
+        return board_state
+
     # unflattenなインデックスをflattenにして返す.
     def get_flatten_point(self, flatten_point):
         a = flatten_point[0] * self.L*self.L
@@ -184,7 +189,7 @@ class Board:
             
             
     
-    def can_put_stone_all(self):
+    def can_put_stone_all(self):#全てのますに合わせてみる
         points = []
         for z in range(self.z-2):
             for y in range(self.y-2):
@@ -192,10 +197,10 @@ class Board:
                     point = [x+1,y+1,z+1]
                     if self.can_put_stone(point):
                         points.append(point)
-        return points
+        return points#おける石の座標が入ってる。
 
 
-    def can_put_stone(self, pos):
+    def can_put_stone(self, pos):#posにおけるか
         here = [0, 0, 0]
         result = False
 
@@ -245,5 +250,5 @@ class Board:
                         for j in pos_list:
                             flip_pos_list.append(j)
                             
-        return flip_pos_list
+        return flip_pos_list#posにおいたときに取れる石の座標
 

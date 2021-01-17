@@ -1,11 +1,13 @@
 from Board import Board
 from Constants import WHITE, BLACK, EMPTY
 from DQNPlayer import DQNPlayer
+from Mcts_action import Mcts_action
 from In_Out_put import In_Out_put
 from RandomPlayer import RandomPlayer,GreedyPlayer,HumblePlayer,GenLPlayer
 import numpy as np
 
 class Players_Osero_game:
+    
     def __init__(self,size_val):
         self.PASS = -2
         self.passmater = 0
@@ -14,12 +16,15 @@ class Players_Osero_game:
         self.L = self.reader.LENGTH
         self.board = Board(self.L)
 #        self.print_Usage()
+
 #        self.players = [DQNPlayer(WHITE), RandomPlayer(BLACK)]
 #        self.players = [DQNPlayer(WHITE), GreedyPlayer(BLACK)]
 #        self.players = [DQNPlayer(WHITE), HumblePlayer(BLACK)]
-        self.players = [GenLPlayer(WHITE), RandomPlayer(BLACK)]
+        # self.players = [GenLPlayer(WHITE), RandomPlayer(BLACK)]\
+        
+        self.players = [Mcts_action(WHITE), RandomPlayer(BLACK)]
 
-    # L = (L-2)^3 width board will crate
+    #L = (L-2)^3 width board will crate
 
     def is_continue(self):
         self.board.chk_win(self.isDpass)
@@ -27,6 +32,11 @@ class Players_Osero_game:
             return True
         else:
             return False
+
+    def who_is_winner(self):
+        winner = self.board.winner
+        return winner
+
 
     def is_not_Quit(self):
         ans = not self.reader.PCQUIT
