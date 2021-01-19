@@ -2,6 +2,8 @@ from Board import Board
 from Constants import WHITE, BLACK, EMPTY
 from DQNPlayer import DQNPlayer
 from In_Out_put import In_Out_put
+from MCTSPlayer import MCTSPlayer
+from PureMonteCarloPlayer import PureMonteCarloPlayer
 from RandomPlayer import RandomPlayer,GreedyPlayer,HumblePlayer,GenLPlayer
 import numpy as np
 
@@ -17,7 +19,8 @@ class Players_Osero_game:
 #        self.players = [DQNPlayer(WHITE), RandomPlayer(BLACK)]
 #        self.players = [DQNPlayer(WHITE), GreedyPlayer(BLACK)]
 #        self.players = [DQNPlayer(WHITE), HumblePlayer(BLACK)]
-        self.players = [GenLPlayer(WHITE), RandomPlayer(BLACK)]
+#         self.players = [GenLPlayer(WHITE), RandomPlayer(BLACK)]
+        self.players = [MCTSPlayer(WHITE), RandomPlayer(BLACK)]
 
     # L = (L-2)^3 width board will crate
 
