@@ -114,6 +114,16 @@ class Board:
 
     # def get_winner(self):
 
+    def get_winner(self):
+        flatten_board = self.get_flattend_board()
+        white_num = np.sum(flatten_board == WHITE)
+        black_num = np.sum(flatten_board == BLACK)
+        if white_num > black_num:
+            return WHITE
+        elif white_num == black_num:
+            return WALL
+        else:
+            return BLACK
 
     def set_winner(self, num_Stones):#勝利判定できる盤面になればこの関数で勝者を調べる
     # test cord for to show final place
