@@ -20,7 +20,8 @@ class Players_Osero_game:
 #        self.players = [DQNPlayer(WHITE), GreedyPlayer(BLACK)]
 #        self.players = [DQNPlayer(WHITE), HumblePlayer(BLACK)]
 #         self.players = [GenLPlayer(WHITE), RandomPlayer(BLACK)]
-        self.players = [MCTSPlayer(WHITE), RandomPlayer(BLACK)]
+#         self.players = [MCTSPlayer(WHITE), RandomPlayer(BLACK)]
+        self.players = [RandomPlayer(WHITE), RandomPlayer(BLACK)]
 
     # L = (L-2)^3 width board will crate
 

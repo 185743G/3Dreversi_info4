@@ -151,8 +151,8 @@ class Board:
         for z in range(self.z-2):
             for y in range(self.y-2):
                 for x in range(self.x-2):
-                    point = [x+1,y+1,z+1]
-                    if self.board[z+1][y+1][x+1]==EMPTY:
+                    point = [x,y,z]
+                    if self.board[z][y][x]==EMPTY:
                         pos.append(point)
         return pos
 
@@ -199,7 +199,7 @@ class Board:
         for z in range(self.z-2):
             for y in range(self.y-2):
                 for x in range(self.x-2):
-                    point = [x+1,y+1,z+1]
+                    point = [x,y,z]
                     if self.can_put_stone(point):
                         points.append(point)
         return points
