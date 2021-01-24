@@ -9,6 +9,9 @@ from RandomPlayer import RandomPlayer
 from Util import get_opponent
 import pickle
 
+from History import History
+from GameResult import GameResult
+
 
 players = [RandomPlayer(WHITE), RandomPlayer(BLACK)]
 PASS = -2
@@ -20,25 +23,6 @@ WIN = 1
 LOSE = -1
 DRAW = -0.5
 
-
-class History(object):
-    def __init__(self):
-        self.gameResults = []
-
-    def addGameResults(self, gameResult):
-        self.gameResults.append(gameResult)
-
-    def setGameResults(self, gameResults):
-        self.gameResults = gameResults
-
-
-class GameResult(object):
-    def __init__(self, s, a, r, s2, t):
-        self.s = s
-        self.a = a
-        self.r = r
-        self.s2 = s2
-        self.t = t
 
 
 history = History()
