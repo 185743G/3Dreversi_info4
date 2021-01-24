@@ -14,8 +14,11 @@ players = [RandomPlayer(WHITE), RandomPlayer(BLACK)]
 PASS = -2
 L = 6
 board = Board(L)
-BATTLE_NUM = 100
+BATTLE_NUM = 1000
 AI_TURN = WHITE
+WIN = 1
+LOSE = -1
+DRAW = -0.5
 
 
 class History(object):
@@ -40,7 +43,6 @@ class GameResult(object):
 
 history = History()
 
-
 def get_reward(board):
     failed_put_stone = 0
     board_c = copy.deepcopy(board)
@@ -52,11 +54,11 @@ def get_reward(board):
     if failed_put_stone == 2:  #
         winner = board_c.get_winner()
         if winner == AI_TURN:
-            return 1
+            return WIN
         elif winner == get_opponent(AI_TURN):
-            return -1
+            return LOSE
         else:
-            return -0.5
+            return DRAW
     else:
         return 0
 
@@ -65,7 +67,7 @@ def generate_experience_replay():
     board_c = copy.deepcopy(board)
     board_c.turn = random.choice([WHITE, BLACK])
     is_continue = True
-    while is_continue:
+    while True:
         s=None
         a=None
         r=0
@@ -92,8 +94,9 @@ def generate_experience_replay():
         if input_pos == [PASS] * 3:
             board_c.change_turn()
             if len(board_c.can_put_stone_all()) == 0:
-                t = 1
-                is_continue = False
+                # t = 1
+                # is_continue = False
+                break
         else:  # 置けたら
             if board_c.can_put_stone(input_pos):  # 一応チェック
                 a=board_c.get_flatten_point(input_pos)
@@ -101,15 +104,19 @@ def generate_experience_replay():
                 board_c.flip(input_pos)
 
                 r=get_reward(board_c)
+                if r in [WIN, LOSE, DRAW]:
+                    t = 1
 
                 board_c.change_turn()
                 s2=copy.deepcopy(board_c).get_flattend_board()
+
+                if turn == AI_TURN:
+                    game_result = GameResult(s, a, r, s2, t)
+                    history.addGameResults(game_result)
             else:
                 raise Exception
 
-        if turn == AI_TURN and is_continue:
-            game_result = GameResult(s, a, r, s2, t)
-            history.addGameResults(game_result)
+
 
 
 if __name__ == "__main__":

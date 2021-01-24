@@ -148,9 +148,9 @@ class Board:
         # for i in range(64):
         #     if self.board[i]==EMPTY:
         #         pos.append(i)
-        for z in range(self.z-2):
-            for y in range(self.y-2):
-                for x in range(self.x-2):
+        for z in range(self.z):
+            for y in range(self.y):
+                for x in range(self.x):
                     point = [x,y,z]
                     if self.board[z][y][x]==EMPTY:
                         pos.append(point)
@@ -196,9 +196,9 @@ class Board:
     
     def can_put_stone_all(self):
         points = []
-        for z in range(self.z-2):
-            for y in range(self.y-2):
-                for x in range(self.x-2):
+        for z in range(self.z):
+            for y in range(self.y):
+                for x in range(self.x):
                     point = [x,y,z]
                     if self.can_put_stone(point):
                         points.append(point)
