@@ -42,16 +42,26 @@ import pickle
 from History import History
 from GameResult import GameResult
 
-with open('history.pickle', 'rb') as f:
-    history_p = pickle.load(f)
+# with open('history.pickle', 'rb') as f:
+#     history_p = pickle.load(f)
 
-print(history_p)
+dbname = 'TEST.db'
+conn = sqlite3.connect(dbname)
+
+cur = conn.cursor()
+
+def get_all_game_results():
+    cur.execute('select * from history')
+    records = cur.fetchall()
+    gameResults = [GameResult.record_to_game_result(record[1:]) for record in records]
+    return gameResults
+
 
 model = MLP(216, 260, 216)
 optimizer = optimizers.SGD()
 optimizer.setup(model)
 
-gameResults = copy.deepcopy(history_p.gameResults)
+gameResults = copy.deepcopy(get_all_game_results())
 # random.shuffle(gameResults)
 
 GAMMA = 0.95
@@ -82,4 +92,6 @@ for gameResult in gameResults:
 
 serializers.save_npz("mymodel.npz", model) # npz形式で書き出し
 
+cur.close()
+conn.close()
 

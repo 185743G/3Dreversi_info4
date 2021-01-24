@@ -10,37 +10,59 @@ import numpy as np
 
 from Constants import EMPTY, DRAW
 from MLP import MLP
+from Util import get_opponent
 
 
 class DQNPlayer:
-    def __init__(self, turn, name="DQN", e=1, dispPred=False):
+    def __init__(self, turn, name="DQN", e=0.8, dispPred=False):
         self.name = name
         self.myturn = turn
         self.enemyturn = 3-turn
         self.model = MLP(216, 260, 216) # 216(=6*6*6)じゃないとエラーが起きる
         serializers.load_npz("mymodel.npz", self.model)
 
-        # self.optimizer = optimizers.SGD()
-        # self.optimizer.setup(self.model)
-        # self.e = e
-        # self.gamma = 0.95
+        self.optimizer = optimizers.SGD()
+        self.optimizer.setup(self.model)
+        self.e = e
+        self.gamma = 0.95
         # self.dispPred = dispPred
         # self.last_move = None
         # self.last_board = None
         # self.last_pred = None
         self.totalgamecount = 0
-        self.rwin, self.rlose, self.rdraw, self.rmiss = 1, -1, 0, -1.5
+        # self.rwin, self.rlose, self.rdraw, self.rmiss = 1, -1, 0, -1.5
+        self.WIN = 1
+        self.LOSE = -1
+        self.DRAW = -0.5
 
     def act(self, board):
         can_put = board.can_put_stone_all()
         if len(can_put) == 0:
             return [-2, -2, -2]
-        x = np.array([board.get_flattend_board()], dtype=np.float32).astype(np.float32)  #
-        pred = self.model(x)
-        point = board.get_unflatten_point(np.argmax(pred.data[0]))
-        if point not in can_put:
-            point = random.choice(can_put)
-        return point
+
+        s = np.array([board.get_flattend_board()], dtype=np.float32).astype(np.float32)  #
+        s_Qs = self.model(s)
+        dat = s_Qs.data[0]
+        act = np.argmax(s_Qs.data[0])
+        if random.random() > self.e or board.get_unflatten_point(act) not in can_put:   # TODO: 違反な配置をされたら、-1の報酬を渡すようにする。ひとまずは、違反な配置があったらrandomにおける場所から選ぶ
+            act = board.get_flatten_point(random.choice(can_put))
+
+        a = act
+        r, s2, t = self.step(board, act)
+        s2 = np.array([s2], dtype=np.float32).astype(np.float32)  #
+        s2_Qs = self.model(s2)
+        maxQnew = max(s2_Qs.data[0])
+        # TODO: actを選んだときのs2の様子と報酬とそのときのQの値を得る
+        dat[act] = r + (1-t)*self.gamma*maxQnew
+        target = np.array([dat], dtype=np.float32).astype(np.float32)  # データ
+        loss = self.model(s, target, train=True)
+        # print(loss.data)
+        self.model.cleargrads()
+        loss.backward()
+        self.optimizer.update()
+        # print(loss)
+
+        return board.get_unflatten_point(act)
         # self.last_board = copy.copy(board)
         # x = np.array([board.get_flattend_board()], dtype=np.float32).astype(np.float32)  #
         #
@@ -105,6 +127,67 @@ class DQNPlayer:
         #         self.last_move = None
         #         self.last_board = None
         #         self.last_pred = None
+    def get_next_board(self, b, act):
+        pass
+
+    def get_reward(self, board): # TODO: s2が存在するか確かめたあとが前提
+        failed_put_stone = 0
+        board_c = copy.deepcopy(board)
+        turns = [self.myturn, get_opponent(self.myturn)]
+        for turn in turns:
+            board_c.turn = turn
+            if len(board_c.can_put_stone_all()) == 0:
+                failed_put_stone += 1
+        if failed_put_stone == 2:  #
+            winner = board_c.get_winner()
+            if winner == self.myturn:
+                return self.WIN
+            elif winner == get_opponent(self.myturn):
+                return self.LOSE
+            else:
+                return self.DRAW
+        else:
+            return 0
+
+
+    # def get_reward(board):
+    #     failed_put_stone = 0
+    #     board_c = copy.deepcopy(board)
+    #     for player in players:
+    #         board_c.turn = player.myturn
+    #         if len(board_c.can_put_stone_all()) == 0:
+    #             failed_put_stone += 1
+    #
+    #     if failed_put_stone == 2:  #
+    #         winner = board_c.get_winner()
+    #         if winner == AI_TURN:
+    #             return WIN
+    #         elif winner == get_opponent(AI_TURN):
+    #             return LOSE
+    #         else:
+    #             return DRAW
+    #     else:
+    #         return 0
+
+    def step(self, board, act):  # TODO: boardに対してactが有効か確かめるのが前提
+        # s, a, r, s2, t
+        s = None
+        a = None
+        r = 0
+        s2 = None
+        t = 0
+
+        board_c = copy.deepcopy(board)
+        s=board.board
+        a=act
+        board_c.flip(board_c.get_unflatten_point(act))
+        board_c.change_turn()
+        s2 = board_c.board
+        r = self.get_reward(board_c)
+        if r in [self.WIN, self.LOSE, self.DRAW]:
+            t = 1
+        return r, s2, t
+
 
     def learn(self, s, a, r, fs):
         pass

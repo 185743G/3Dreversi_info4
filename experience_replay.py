@@ -3,6 +3,7 @@ import random
 import sqlite3
 
 
+
 from Board import Board
 from Constants import WHITE, BLACK, EMPTY
 from RandomPlayer import RandomPlayer
@@ -12,12 +13,29 @@ import pickle
 from History import History
 from GameResult import GameResult
 
+dbname = 'TEST.db'
+conn = sqlite3.connect(dbname)
+
+cur = conn.cursor()
+
+# s, a, r, s2, t
+def drop_table():
+    cur.execute("drop table history")
+
+def create_table():
+    cur.execute('CREATE TABLE history(id INTEGER PRIMARY KEY AUTOINCREMENT,s TEXT, a INTEGER, r INTEGER, s2 TEXT, t INTEGER)')
+
+def insert_gameResult(record):
+    cur.execute('insert into history(s, a , r , s2 , t) values(?, ?, ?, ?, ?)', (record[0], record[1], record[2], record[3], record[4]))
+
+def delete_all():
+    cur.execute('delete from history')
 
 players = [RandomPlayer(WHITE), RandomPlayer(BLACK)]
 PASS = -2
 L = 6
 board = Board(L)
-BATTLE_NUM = 50000
+BATTLE_NUM = 2000
 AI_TURN = WHITE
 WIN = 1
 LOSE = -1
@@ -96,7 +114,9 @@ def generate_experience_replay():
 
                 if turn == AI_TURN:
                     game_result = GameResult(s, a, r, s2, t)
-                    history.addGameResults(game_result)
+                    record = game_result.to_record()
+                    insert_gameResult(record)
+                    # history.addGameResults(game_result)
             else:
                 raise Exception
 
@@ -104,15 +124,18 @@ def generate_experience_replay():
 
 
 if __name__ == "__main__":
+    drop_table()
+    try:
+        create_table()
+    except:
+        print("already exist")
+
+
 
     for _ in range(BATTLE_NUM):
         generate_experience_replay()
+    conn.commit()
 
-    with open('history.pickle', 'wb') as f:
-        pickle.dump(history, f)
-
-    with open('history.pickle', 'rb') as f:
-        history_p = pickle.load(f)
-
-
+    cur.close()
+    conn.close()
     print("hoge")
