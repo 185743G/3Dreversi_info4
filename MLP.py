@@ -12,10 +12,12 @@ class MLP(chainer.Chain):
             l2=L.Linear(n_units, n_units),  # second layer
             l3=L.Linear(n_units, n_units),  # Third layer
             l4=L.Linear(n_units, n_out),  # output layer
+            # l5=L.Linear(n_units, n_out),  # output layer
+
         )
     """
     mean squad error = 二乗誤差
-    leaky relu : reluの一つ
+    leaky reluaky relu : reluの一つ
     L -> F -> L
     """
     def __call__(self, x, t=None, train=False):
@@ -23,9 +25,12 @@ class MLP(chainer.Chain):
         h = F.leaky_relu(self.l2(h))
         h = F.leaky_relu(self.l3(h))
         h = self.l4(h)
+        # h = self.l5(h)
 
         if train:
             return F.mean_squared_error(h,t)
+            # return F.huber_loss(h, t)
+
         else:
             return h
 

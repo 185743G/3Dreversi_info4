@@ -14,7 +14,7 @@ class MCTSPlayer:
         self.name = "mcts"
         self.myturn = turn
         self.all_playout_num = 1   # UCTの計算用
-        self.playout_limit = 20   # 木全体のplayout回数の上限
+        self.playout_limit = 5   # 木全体のplayout回数の上限
         self.PASS = -2
 
     def act(self, board):

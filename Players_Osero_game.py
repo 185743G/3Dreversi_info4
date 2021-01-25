@@ -20,9 +20,17 @@ class Players_Osero_game:
 #        self.players = [DQNPlayer(WHITE), GreedyPlayer(BLACK)]
 #        self.players = [DQNPlayer(WHITE), HumblePlayer(BLACK)]
 #         self.players = [GenLPlayer(WHITE), RandomPlayer(BLACK)]
-        self.players = [MCTSPlayer(WHITE), RandomPlayer(BLACK)]
+#         self.players = [MCTSPlayer(WHITE), RandomPlayer(BLACK)]
+        self.players = [DQNPlayer(WHITE), RandomPlayer(BLACK)]
 
     # L = (L-2)^3 width board will crate
+    def reset(self, size_val):
+        self.PASS = -2
+        self.passmater = 0
+        self.isDpass = False
+        self.reader = In_Out_put(size_val)
+        self.L = self.reader.LENGTH
+        self.board = Board(self.L)
 
     def is_continue(self):
         self.board.chk_win(self.isDpass)
