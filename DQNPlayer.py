@@ -3,23 +3,25 @@ import copy
 
 import chainer
 
-from chainer import Function, gradient_check, Variable, optimizers, serializers, utils
+from chainer import Function, gradient_check, Variable, optimizers, serializers, utils, Chain, cuda
 import chainer.functions as F  # Functionは、パラメータを持たない関数です。
 import chainer.links as L  # links パラメーターを持つ関数
 import numpy as np
+# import cupy as cp
 
-from Constants import EMPTY, DRAW
+
+from Constants import EMPTY, DRAW, use_gpu
 from MLP import MLP
 from Util import get_opponent
 
 
 class DQNPlayer:
-    def __init__(self, turn, name="DQN", e=0.8, dispPred=False):
+    def __init__(self, turn, name="DQN", e=1.0, dispPred=False):
         self.name = name
         self.myturn = turn
         self.enemyturn = 3-turn
-        self.model = MLP(216, 260, 216) # 216(=6*6*6)じゃないとエラーが起きる
-        serializers.load_npz("mymodel.npz", self.model)
+        self.model = MLP(216, 864, 216) # 216(=6*6*6)じゃないとエラーが起きる
+        # serializers.load_npz("mymodel.npz", self.model)
 
         self.optimizer = optimizers.SGD()
         self.optimizer.setup(self.model)
@@ -29,11 +31,13 @@ class DQNPlayer:
         # self.last_move = None
         # self.last_board = None
         # self.last_pred = None
+        # self.xp = cuda.cupy
+        self.experience = []
         self.totalgamecount = 0
         # self.rwin, self.rlose, self.rdraw, self.rmiss = 1, -1, 0, -1.5
-        self.WIN = 1
-        self.LOSE = -1
-        self.DRAW = -0.5
+        self.WIN = 10
+        self.LOSE = -10
+        self.DRAW = -5
 
     def act(self, board):
         can_put = board.can_put_stone_all()
@@ -43,15 +47,20 @@ class DQNPlayer:
         s = np.array([board.get_flattend_board()], dtype=np.float32).astype(np.float32)  #
         s_Qs = self.model(s)
         dat = s_Qs.data[0]
-        act = np.argmax(s_Qs.data[0])
-        if random.random() > self.e or board.get_unflatten_point(act) not in can_put:   # TODO: 違反な配置をされたら、-1の報酬を渡すようにする。ひとまずは、違反な配置があったらrandomにおける場所から選ぶ
+        if use_gpu:
+            act = np.argmax(s_Qs.data[0])
+        else:
+            act = np.argmax(s_Qs.data[0])
+        if self.e > 0.2:  # decrement epsilon over time
+            self.e -= 1 / (20000)
+        if random.random() < self.e or board.get_unflatten_point(act) not in can_put:   # TODO: 違反な配置をされたら、-1の報酬を渡すようにする。ひとまずは、違反な配置があったらrandomにおける場所から選ぶ
             act = board.get_flatten_point(random.choice(can_put))
 
         a = act
         r, s2, t = self.step(board, act)
         s2 = np.array([s2], dtype=np.float32).astype(np.float32)  #
         s2_Qs = self.model(s2)
-        maxQnew = max(s2_Qs.data[0])
+        maxQnew = np.max(s2_Qs.data[0])
         # TODO: actを選んだときのs2の様子と報酬とそのときのQの値を得る
         dat[act] = r + (1-t)*self.gamma*maxQnew
         target = np.array([dat], dtype=np.float32).astype(np.float32)  # データ
@@ -106,6 +115,9 @@ class DQNPlayer:
         # self.last_move = act
         # # self.last_pred=pred.data[0,:]
         # return board.get_unflatten_point(act)
+
+    def experience_replay(self):
+        pass
 
     def getGameResult(self, board):
         pass

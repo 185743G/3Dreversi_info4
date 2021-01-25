@@ -9,3 +9,4 @@ Z = 2  # Z-axis
 symbols = ['E', '○', '✖︎', 'W']  # provisional graphics
 players = ["Empty", "White", "Black","none"]  # player name list
 DRAW=2
+use_gpu = True
