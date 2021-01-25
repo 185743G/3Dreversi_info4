@@ -32,7 +32,11 @@ class DQNPlayer:
         # self.last_board = None
         # self.last_pred = None
         # self.xp = cuda.cupy
+        self.step_num = 0
+        self.start_learn = 5 * 10**3
+        self.batch_size = 128
         self.experience = []
+        self.experience_limit = 10000
         self.totalgamecount = 0
         # self.rwin, self.rlose, self.rdraw, self.rmiss = 1, -1, 0, -1.5
         self.WIN = 10
@@ -44,13 +48,13 @@ class DQNPlayer:
         if len(can_put) == 0:
             return [-2, -2, -2]
 
-        s = np.array([board.get_flattend_board()], dtype=np.float32).astype(np.float32)  #
-        s_Qs = self.model(s)
+        s = np.array(board.get_flattend_board(), dtype=np.float32).astype(np.float32)  #
+        s_Qs = self.model(np.array([s]))
         dat = s_Qs.data[0]
-        if use_gpu:
-            act = np.argmax(s_Qs.data[0])
-        else:
-            act = np.argmax(s_Qs.data[0])
+        # if use_gpu:
+        act = np.argmax(s_Qs.data[0])
+        # else:
+        #     act = np.argmax(s_Qs.data[0])
         if self.e > 0.2:  # decrement epsilon over time
             self.e -= 1 / (20000)
         if random.random() < self.e or board.get_unflatten_point(act) not in can_put:   # TODO: 違反な配置をされたら、-1の報酬を渡すようにする。ひとまずは、違反な配置があったらrandomにおける場所から選ぶ
@@ -58,18 +62,29 @@ class DQNPlayer:
 
         a = act
         r, s2, t = self.step(board, act)
-        s2 = np.array([s2], dtype=np.float32).astype(np.float32)  #
-        s2_Qs = self.model(s2)
-        maxQnew = np.max(s2_Qs.data[0])
-        # TODO: actを選んだときのs2の様子と報酬とそのときのQの値を得る
-        dat[act] = r + (1-t)*self.gamma*maxQnew
-        target = np.array([dat], dtype=np.float32).astype(np.float32)  # データ
-        loss = self.model(s, target, train=True)
-        # print(loss.data)
-        self.model.cleargrads()
-        loss.backward()
-        self.optimizer.update()
+        s2 = np.array(s2, dtype=np.float32).astype(np.float32)  #
+
+        self.experience.append([s, a, r, s2, t])
+        if len(self.experience) >= 10000:
+            self.experience.pop(0)
+        self.step_num += 1
+        if self.step_num > self.start_learn:
+            self.replay_experience()
+
+
+        # s2_Qs = self.model(s2)
+        # maxQnew = np.max(s2_Qs.data[0])
+        # # TODO: actを選んだときのs2の様子と報酬とそのときのQの値を得る
+        # dat[act] = r + (1-t)*self.gamma*maxQnew
+        # target = np.array([dat], dtype=np.float32).astype(np.float32)  # データ
+        # loss = self.model(s, target, train=True)
+        # # print(loss.data)
+        # self.model.cleargrads()
+        # loss.backward()
+        # self.optimizer.update()
         # print(loss)
+
+
 
         return board.get_unflatten_point(act)
         # self.last_board = copy.copy(board)
@@ -116,8 +131,46 @@ class DQNPlayer:
         # # self.last_pred=pred.data[0,:]
         # return board.get_unflatten_point(act)
 
-    def experience_replay(self):
-        pass
+    def replay_experience(self):
+        # for sample in samples
+
+        samples = random.sample(self.experience, self.batch_size)
+        s=np.array([sample[0] for sample in samples])
+        a=np.array([sample[1] for sample in samples])
+        r=np.array([sample[2] for sample in samples])
+        s2=np.array([sample[3] for sample in samples])
+        t=np.array([sample[4] for sample in samples])
+
+        s_Qs = self.model(s)
+        s_Q_data = copy.deepcopy(s_Qs.data)
+        s2_Qs = self.model(s2)
+        maxQnew = np.max(s2_Qs.data, axis=1)
+        tmp = r + (1 - t)*self.gamma*maxQnew
+        for i in range(len(maxQnew)):
+            s_Q_data[i, a[i]] = tmp[i]
+
+
+        target = np.array(s_Q_data, dtype=np.float32).astype(np.float32)  # データ
+        loss = self.model(s, target, train=True)
+        self.model.cleargrads()
+        loss.backward()
+        self.optimizer.update()
+
+
+        # if random.random() < self.e:
+
+
+        # # TODO: actを選んだときのs2の様子と報酬とそのときのQの値を得る
+        # dat[act] = r + (1-t)*self.gamma*maxQnew
+        # target = np.array([dat], dtype=np.float32).astype(np.float32)  # データ
+        # loss = self.model(s, target, train=True)
+        # # print(loss.data)
+        # self.model.cleargrads()
+        # loss.backward()
+        # self.optimizer.update()
+        # print(loss)
+
+        # pass
 
     def getGameResult(self, board):
         pass
