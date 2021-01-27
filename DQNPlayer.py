@@ -19,8 +19,8 @@ class DQNPlayer:
     def __init__(self, turn, name="DQN", e=1.0, dispPred=False):
         self.name = name
         self.myturn = turn
-        self.enemyturn = 3-turn
-        self.model = MLP(216, 864, 216) # 216(=6*6*6)じゃないとエラーが起きる
+        self.enemyturn = 3 - turn
+        self.model = MLP(128, 256, 64)  # 216(=6*6*6)じゃないとエラーが起きる
         # serializers.load_npz("mymodel.npz", self.model)
 
         self.optimizer = optimizers.SGD()
@@ -33,15 +33,15 @@ class DQNPlayer:
         # self.last_pred = None
         # self.xp = cuda.cupy
         self.step_num = 0
-        self.start_learn = 5 * 10**3
+        self.start_learn = 5 * 10 ** 3
         self.batch_size = 128
         self.experience = []
         self.experience_limit = 10000
         self.totalgamecount = 0
         # self.rwin, self.rlose, self.rdraw, self.rmiss = 1, -1, 0, -1.5
-        self.WIN = 10
-        self.LOSE = -10
-        self.DRAW = -5
+        self.WIN = 1
+        self.LOSE = -1
+        self.DRAW = -0.5
 
     def act(self, board):
         can_put = board.can_put_stone_all()
@@ -57,12 +57,18 @@ class DQNPlayer:
         #     act = np.argmax(s_Qs.data[0])
         if self.e > 0.2:  # decrement epsilon over time
             self.e -= 1 / (20000)
-        if random.random() < self.e or board.get_unflatten_point(act) not in can_put:   # TODO: 違反な配置をされたら、-1の報酬を渡すようにする。ひとまずは、違反な配置があったらrandomにおける場所から選ぶ
-            act = board.get_flatten_point(random.choice(can_put))
+        if random.random() < self.e:  # TODO: 違反な配置をされたら、-1の報酬を渡すようにする。ひとまずは、違反な配置があったらrandomにおける場所から選ぶ
+            act = board.get_act_point(random.choice(can_put))
 
         a = act
-        r, s2, t = self.step(board, act)
-        s2 = np.array(s2, dtype=np.float32).astype(np.float32)  #
+        if board.get_board_point(act) not in can_put:
+            r = self.LOSE
+            s2 = copy.deepcopy(s)
+            t = 1
+            act = board.get_act_point(random.choice(can_put))
+        else:
+            r, s2, t = self.step(board, act)
+            s2 = np.array(s2, dtype=np.float32).astype(np.float32)  #
 
         self.experience.append([s, a, r, s2, t])
         if len(self.experience) >= 10000:
@@ -70,7 +76,6 @@ class DQNPlayer:
         self.step_num += 1
         if self.step_num > self.start_learn:
             self.replay_experience()
-
 
         # s2_Qs = self.model(s2)
         # maxQnew = np.max(s2_Qs.data[0])
@@ -84,9 +89,7 @@ class DQNPlayer:
         # self.optimizer.update()
         # print(loss)
 
-
-
-        return board.get_unflatten_point(act)
+        return board.get_board_point(act)
         # self.last_board = copy.copy(board)
         # x = np.array([board.get_flattend_board()], dtype=np.float32).astype(np.float32)  #
         #
@@ -135,20 +138,19 @@ class DQNPlayer:
         # for sample in samples
 
         samples = random.sample(self.experience, self.batch_size)
-        s=np.array([sample[0] for sample in samples])
-        a=np.array([sample[1] for sample in samples])
-        r=np.array([sample[2] for sample in samples])
-        s2=np.array([sample[3] for sample in samples])
-        t=np.array([sample[4] for sample in samples])
+        s = np.array([sample[0] for sample in samples])
+        a = np.array([sample[1] for sample in samples])
+        r = np.array([sample[2] for sample in samples])
+        s2 = np.array([sample[3] for sample in samples])
+        t = np.array([sample[4] for sample in samples])
 
         s_Qs = self.model(s)
         s_Q_data = copy.deepcopy(s_Qs.data)
         s2_Qs = self.model(s2)
         maxQnew = np.max(s2_Qs.data, axis=1)
-        tmp = r + (1 - t)*self.gamma*maxQnew
+        tmp = r + (1 - t) * self.gamma * maxQnew
         for i in range(len(maxQnew)):
             s_Q_data[i, a[i]] = tmp[i]
-
 
         target = np.array(s_Q_data, dtype=np.float32).astype(np.float32)  # データ
         loss = self.model(s, target, train=True)
@@ -156,9 +158,7 @@ class DQNPlayer:
         loss.backward()
         self.optimizer.update()
 
-
         # if random.random() < self.e:
-
 
         # # TODO: actを選んだときのs2の様子と報酬とそのときのQの値を得る
         # dat[act] = r + (1-t)*self.gamma*maxQnew
@@ -192,10 +192,11 @@ class DQNPlayer:
         #         self.last_move = None
         #         self.last_board = None
         #         self.last_pred = None
+
     def get_next_board(self, b, act):
         pass
 
-    def get_reward(self, board): # TODO: s2が存在するか確かめたあとが前提
+    def get_reward(self, board):  # TODO: s2が存在するか確かめたあとが前提
         failed_put_stone = 0
         board_c = copy.deepcopy(board)
         turns = [self.myturn, get_opponent(self.myturn)]
@@ -213,7 +214,6 @@ class DQNPlayer:
                 return self.DRAW
         else:
             return 0
-
 
     # def get_reward(board):
     #     failed_put_stone = 0
@@ -243,16 +243,15 @@ class DQNPlayer:
         t = 0
 
         board_c = copy.deepcopy(board)
-        s=board.board
-        a=act
-        board_c.flip(board_c.get_unflatten_point(act))
+        s = board.get_flattend_board()
+        a = act
+        board_c.flip(board_c.get_board_point(act))
         board_c.change_turn()
-        s2 = board_c.board
+        s2 = board_c.get_flattend_board()
         r = self.get_reward(board_c)
         if r in [self.WIN, self.LOSE, self.DRAW]:
             t = 1
         return r, s2, t
-
 
     def learn(self, s, a, r, fs):
         pass
