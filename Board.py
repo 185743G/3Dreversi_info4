@@ -1,6 +1,9 @@
 from Constants import WHITE, BLACK, EMPTY, WALL, ThreeD, players, symbols, X, Y, Z
 import numpy as np
 
+from Util import get_unflatten, get_flatten
+
+
 class Board:
     # borad control and board instance in this class.
 
@@ -16,20 +19,48 @@ class Board:
         self.board = [[[0] * length for i in range(length)] for i in range(length)]
         self.initialize(length)
 
-    def get_flattend_board(self):#リスト形式でboard情報を得る
-        return np.array(self.board).flatten()
+    def get_flattend_board(self):  # リスト形式でboard情報を得る
+        # begin = 1
+        # end = len(self.board)-1
+        tmp = []
+        for area in self.board[1:-1]:
+            actual_area = []
+            for row in area[1:-1]:
+                # actual_area.append(row[1:-1]])
+                actual_row = []
+                for e in row[1:-1]:
+                    one_hot = [0, 0]
+                    if e == WHITE:
+                        one_hot[0] = 1
+                    elif e == BLACK:
+                        one_hot[1] = 1
+                    actual_row.append(one_hot)
+                actual_area.append(actual_row)
+            tmp.append(actual_area)
+        return np.array(tmp).flatten()
 
     # unflattenなインデックスをflattenにして返す.
     def get_flatten_point(self, flatten_point):
-        a = flatten_point[0] * self.L*self.L
+        a = flatten_point[0] * self.L * self.L
         b = a + flatten_point[1] * self.L
         ret = b + flatten_point[2]
         return ret
 
+    def get_board_point(self, act):  # actはmodelで処理するための1次元座標
+        # L=4でflattenな座標を取得し、それに+1する
+        unflatten_act = get_unflatten(act, 4)
+        board_point = [i + 1 for i in unflatten_act]
+        return board_point
+
+    def get_act_point(self, board_point):
+        unflatten_act = [i - 1 for i in board_point]
+        act = get_flatten(unflatten_act, 4)
+        return act
+
     # flattenなインデックスをunflatternなポイントに返す
     def get_unflatten_point(self, i):
-        z = i // (self.L*self.L)
-        mod = i % (self.L*self.L)
+        z = i // (self.L * self.L)
+        mod = i % (self.L * self.L)
         y = mod // self.L
         mod = mod % self.L
         x = mod
@@ -64,15 +95,15 @@ class Board:
         for i in range(len(self.direction)):
             self.direction[i] = [i // (ThreeD ** 2) - 1, (i // ThreeD) % ThreeD - 1, i % ThreeD - 1]
 
-#           test cord for to show initial place
-#        for c in range(self.z):
-#            for d in range(self.y):
-#                for e in range(self.x):
-#                    print(symbols[self.board[e][d][c]],end=' ')
-#                print("")
-#            print("")
+    #           test cord for to show initial place
+    #        for c in range(self.z):
+    #            for d in range(self.y):
+    #                for e in range(self.x):
+    #                    print(symbols[self.board[e][d][c]],end=' ')
+    #                print("")
+    #            print("")
 
-    def open(self):#ボードをターミナル上に表示する
+    def open(self):  # ボードをターミナル上に表示する
         num_Stones = [0] * len(players)
 
         for i in range(self.z - 2):
@@ -95,7 +126,7 @@ class Board:
                             num_Stones[BLACK] += 1
                 print("")
 
-    def chk_win(self,isDpass):#勝利判定
+    def chk_win(self, isDpass):  # 勝利判定
         num_Stones = [0] * len(players)
 
         for i in range(self.z - 2):
@@ -125,39 +156,38 @@ class Board:
         else:
             return BLACK
 
-    def set_winner(self, num_Stones):#勝利判定できる盤面になればこの関数で勝者を調べる
-    # test cord for to show final place
-#        for c in range(self.z):
-#            for d in range(self.y):
-#                for e in range(self.x):
-#                    print(symbols[self.board[e][d][c]],end=' ')
-#                print("")
-#            print("")
-#
+    def set_winner(self, num_Stones):  # 勝利判定できる盤面になればこの関数で勝者を調べる
+        # test cord for to show final place
+        #        for c in range(self.z):
+        #            for d in range(self.y):
+        #                for e in range(self.x):
+        #                    print(symbols[self.board[e][d][c]],end=' ')
+        #                print("")
+        #            print("")
+        #
         if num_Stones[WHITE] < num_Stones[BLACK]:
             self.winner = BLACK
         elif num_Stones[WHITE] > num_Stones[BLACK]:
             self.winner = WHITE
         elif num_Stones[WHITE] == num_Stones[BLACK]:
             self.winner = WALL
-#        print("%d　対　%d　勝者は...%s!!!\n" %( num_Stones[WHITE],num_Stones[BLACK],players[self.winner]))
+        #        print("%d　対　%d　勝者は...%s!!!\n" %( num_Stones[WHITE],num_Stones[BLACK],players[self.winner]))
         return self.winner
 
     def get_possible_pos(self):
-        pos=[]
+        pos = []
         # for i in range(64):
         #     if self.board[i]==EMPTY:
         #         pos.append(i)
         for z in range(self.z):
             for y in range(self.y):
                 for x in range(self.x):
-                    point = [x,y,z]
-                    if self.board[z][y][x]==EMPTY:
+                    point = [x, y, z]
+                    if self.board[z][y][x] == EMPTY:
                         pos.append(point)
         return pos
 
-
-    def chk_Cell_Ahead(self, pos, dirc):#位置pos+周囲一マスのうちのどこか(dirc)のマスを調べる
+    def chk_Cell_Ahead(self, pos, dirc):  # 位置pos+周囲一マスのうちのどこか(dirc)のマスを調べる
         global X, Y, Z
         return self.board[pos[X] + dirc[X]][pos[Y] + dirc[Y]][pos[Z] + dirc[Z]]
 
@@ -166,13 +196,14 @@ class Board:
         self.turn = 3 - self.turn
         self.ENEMY = 3 - self.turn
         self.ALLY = self.turn
-#        print("！！%sのターン！！\n" % players[self.turn])
+
+    #        print("！！%sのターン！！\n" % players[self.turn])
 
     def set_Next_Position(self, pos, dirc):
-        pos = [pos[X] + dirc[X],pos[Y] + dirc[Y],pos[Z] + dirc[Z]]
+        pos = [pos[X] + dirc[X], pos[Y] + dirc[Y], pos[Z] + dirc[Z]]
         return pos
-    
-    def greedy(self,choice):
+
+    def greedy(self, choice):
         num_stone_get = []
         greedychoices = []
         for i in choice:
@@ -181,8 +212,8 @@ class Board:
             if num_stone_get[j] == max(num_stone_get):
                 greedychoices.append(choice[j])
         return greedychoices
-        
-    def humble(self,choice):
+
+    def humble(self, choice):
         num_stone_get = []
         humblechoices = []
         for i in choice:
@@ -191,19 +222,16 @@ class Board:
             if num_stone_get[j] == min(num_stone_get):
                 humblechoices.append(choice[j])
         return humblechoices
-            
-            
-    
+
     def can_put_stone_all(self):
         points = []
         for z in range(self.z):
             for y in range(self.y):
                 for x in range(self.x):
-                    point = [x,y,z]
+                    point = [x, y, z]
                     if self.can_put_stone(point):
                         points.append(point)
         return points
-
 
     def can_put_stone(self, pos):
         here = [0, 0, 0]
@@ -225,7 +253,7 @@ class Board:
     def flip(self, pos):
         here = [0, 0, 0]
         self.setCell(pos, self.ALLY)
-        
+
         flip_pos_list = [pos]
         for i in range(len(self.direction)):
             if self.direction[i] != here:
@@ -242,7 +270,7 @@ class Board:
 
     def get_flip_list(self, pos):
         here = [0, 0, 0]
-#        self.setCell(pos, self.ALLY)
+        #        self.setCell(pos, self.ALLY)
         flip_pos_list = [pos]
         for i in range(len(self.direction)):
             if self.direction[i] != here:
@@ -254,6 +282,6 @@ class Board:
                     if self.chk_Cell_Ahead(p, self.direction[i]) == self.ALLY:
                         for j in pos_list:
                             flip_pos_list.append(j)
-                            
+
         return flip_pos_list
 

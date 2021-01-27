@@ -29,7 +29,7 @@ class MLP(chainer.Chain):
 
         if train:
             return F.mean_squared_error(h,t)
-            # return F.huber_loss(h, t)
+            # return F.huber_loss(h, t)AlphaGo対李世ドル
 
         else:
             return h
