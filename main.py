@@ -10,8 +10,9 @@ if __name__ == '__main__':
 
     step = 100
 
-    with open("logs/battle.log", "w") as f:
+    with open("logs/battle.log", "w") as f, open("logs/total_battle.log", "w") as f2:
         f.write("")
+        f2.write("")
 
     game_a = Players_Osero_game(size)
 
@@ -21,8 +22,11 @@ if __name__ == '__main__':
             while (game_a.is_continue() and game_a.is_not_Quit()):
                 game_a.update()
             result[game_a.board.winner] += 1
-        print("Whiteの勝利数: {}".format(result[WHITE]))
-        print("Blackの勝利数: {}".format(result[BLACK]))
+
+        w_total_str = "Whiteの勝利数: {}".format(result[WHITE])
+        b_total_str = "Blackの勝利数: {}".format(result[BLACK])
+        print(w_total_str)
+        print(b_total_str)
 
         w_step = result[WHITE] - white_sum
         b_step = result[BLACK] - black_sum
@@ -32,8 +36,9 @@ if __name__ == '__main__':
         black_sum = result[BLACK]
 
         xy_str = "{} {}\n".format(i*step, w_step/step)
-        with open("logs/battle.log", "a") as f:
+        with open("logs/battle.log", "a") as f, open("logs/total_battle.log", "a") as f2:
             f.write(xy_str)
+            f2.write(w_total_str + "\n" + b_total_str + "\n")
 
 
 
