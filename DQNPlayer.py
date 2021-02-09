@@ -26,7 +26,7 @@ class DQNPlayer:
         self.optimizer = optimizers.SGD()
         self.optimizer.setup(self.model)
         self.e = e
-        self.bottom_e = 0.2
+        self.bottom_e = 0.05
         self.gamma = 0.95
         # self.dispPred = dispPred
         # self.last_move = None
@@ -57,7 +57,7 @@ class DQNPlayer:
         # else:
         #     act = np.argmax(s_Qs.data[0])
         if self.e > self.bottom_e:  # decrement epsilon over time
-            self.e -= 1 / (20000)
+            self.e -= 1 / (200)
         if random.random() < self.e:
             act = board.get_act_point(random.choice(can_put))
 
