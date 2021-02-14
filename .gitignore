@@ -11,3 +11,10 @@ __pycache__/In_Out_put.cpython-37.pyc
 __pycache__/MLP.cpython-37.pyc
 __pycache__/Players_Osero_game.cpython-37.pyc
 __pycache__/RandomPlayer.cpython-37.pyc
+__pycache__/create_model.cpython-37.pyc
+__pycache__/GameResult.cpython-37.pyc
+__pycache__/History.cpython-37.pyc
+__pycache__/MCTSPlayer.cpython-37.pyc
+__pycache__/Node.cpython-37.pyc
+__pycache__/PureMonteCarloPlayer.cpython-37.pyc
+__pycache__/Util.cpython-37.pyc

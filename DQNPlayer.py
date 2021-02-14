@@ -20,12 +20,13 @@ class DQNPlayer:
         self.name = name
         self.myturn = turn
         self.enemyturn = 3 - turn
-        self.model = MLP(128, 256, 64)  # 216(=6*6*6)じゃないとエラーが起きる
+        self.model = MLP(128, 256, 64)
         # serializers.load_npz("mymodel.npz", self.model)
 
         self.optimizer = optimizers.SGD()
         self.optimizer.setup(self.model)
         self.e = e
+        self.bottom_e = 0.05
         self.gamma = 0.95
         # self.dispPred = dispPred
         # self.last_move = None
@@ -55,9 +56,9 @@ class DQNPlayer:
         act = np.argmax(s_Qs.data[0])
         # else:
         #     act = np.argmax(s_Qs.data[0])
-        if self.e > 0.2:  # decrement epsilon over time
-            self.e -= 1 / (20000)
-        if random.random() < self.e:  # TODO: 違反な配置をされたら、-1の報酬を渡すようにする。ひとまずは、違反な配置があったらrandomにおける場所から選ぶ
+        if self.e > self.bottom_e:  # decrement epsilon over time
+            self.e -= 1 / (200)
+        if random.random() < self.e:
             act = board.get_act_point(random.choice(can_put))
 
         a = act
@@ -79,9 +80,8 @@ class DQNPlayer:
 
         # s2_Qs = self.model(s2)
         # maxQnew = np.max(s2_Qs.data[0])
-        # # TODO: actを選んだときのs2の様子と報酬とそのときのQの値を得る
         # dat[act] = r + (1-t)*self.gamma*maxQnew
-        # target = np.array([dat], dtype=np.float32).astype(np.float32)  # データ
+        # target = np.array([dat], dtype=np.float32).astype(np.float32)
         # loss = self.model(s, target, train=True)
         # # print(loss.data)
         # self.model.cleargrads()
@@ -138,11 +138,23 @@ class DQNPlayer:
         # for sample in samples
 
         samples = random.sample(self.experience, self.batch_size)
-        s = np.array([sample[0] for sample in samples])
-        a = np.array([sample[1] for sample in samples])
-        r = np.array([sample[2] for sample in samples])
-        s2 = np.array([sample[3] for sample in samples])
-        t = np.array([sample[4] for sample in samples])
+        s=[]
+        a=[]
+        r=[]
+        s2=[]
+        t=[]
+        for sample in samples:
+            s.append(sample[0])
+            a.append(sample[1])
+            r.append(sample[2])
+            s2.append(sample[3])
+            t.append(sample[4])
+
+        s = np.array(s)
+        a = np.array(a)
+        r = np.array(r)
+        s2 = np.array(s2)
+        t = np.array(t)
 
         s_Qs = self.model(s)
         s_Q_data = copy.deepcopy(s_Qs.data)
@@ -160,7 +172,6 @@ class DQNPlayer:
 
         # if random.random() < self.e:
 
-        # # TODO: actを選んだときのs2の様子と報酬とそのときのQの値を得る
         # dat[act] = r + (1-t)*self.gamma*maxQnew
         # target = np.array([dat], dtype=np.float32).astype(np.float32)  # データ
         # loss = self.model(s, target, train=True)
@@ -196,7 +207,7 @@ class DQNPlayer:
     def get_next_board(self, b, act):
         pass
 
-    def get_reward(self, board):  # TODO: s2が存在するか確かめたあとが前提
+    def get_reward(self, board):
         failed_put_stone = 0
         board_c = copy.deepcopy(board)
         turns = [self.myturn, get_opponent(self.myturn)]
@@ -234,7 +245,7 @@ class DQNPlayer:
     #     else:
     #         return 0
 
-    def step(self, board, act):  # TODO: boardに対してactが有効か確かめるのが前提
+    def step(self, board, act):
         # s, a, r, s2, t
         s = None
         a = None

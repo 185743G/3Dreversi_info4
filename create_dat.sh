@@ -1,0 +1,1 @@
+ls logs/*.txt | xargs python plot.py

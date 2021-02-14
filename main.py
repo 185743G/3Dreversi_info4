@@ -5,16 +5,54 @@ from Players_Osero_game import Players_Osero_game
 if __name__ == '__main__':
     size = 1 # 1:4*4*4  2:6*6*6  3:8*8*8
     result = [0, 0, 0, 0, 0]
+    white_sum = 0
+    black_sum = 0
+
+    step = 100
+
+    with open("logs/battle.log", "w") as f, open("logs/total_battle.log", "w") as f2:
+        f.write("")
+        f2.write("")
+
     game_a = Players_Osero_game(size)
 
-    for _ in range(1000):
-        for j in range(100):
+    for i in range(1000):
+        for j in range(step):
             game_a.reset(size)
             while (game_a.is_continue() and game_a.is_not_Quit()):
                 game_a.update()
             result[game_a.board.winner] += 1
-        print("Whiteの勝利数: {}".format(result[WHITE]))
-        print("Blackの勝利数: {}".format(result[BLACK]))
 
+        w_total_str = "Whiteの勝利数: {}".format(result[WHITE])
+        b_total_str = "Blackの勝利数: {}".format(result[BLACK])
+        print(w_total_str)
+        print(b_total_str)
+
+        w_step = result[WHITE] - white_sum
+        b_step = result[BLACK] - black_sum
+        d_step = step - (w_step + b_step)
+
+        white_sum = result[WHITE]
+        black_sum = result[BLACK]
+
+        xy_str = "{} {}\n".format(i*step, w_step/step)
+        with open("logs/battle.log", "a") as f, open("logs/total_battle.log", "a") as f2:
+            f.write(xy_str)
+            f2.write(w_total_str + "\n" + b_total_str + "\n")
+
+
+
+    # win_rate = [white_step/step for white_step in white_steps]
+    #
+    # x = [i * step for i in range(len(win_rate))]
+    # y = win_rate
+    #
+    # xy_str = ""
+    # for x_i, y_i in zip(x, y):
+    #     row = "{} {}".format(x_i, y_i)
+    #     xy_str += row + "¥n"
+    #
+    # with open("logs/battle.log", "w") as f:
+    #     f.write(xy_str)
 
 
