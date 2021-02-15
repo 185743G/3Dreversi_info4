@@ -30,27 +30,15 @@ class MCTSPlayer:
     def mcts(self, root_state):
         # TODO: ある程度まで広げたら終了させるようにする。selectが呼び出された回数にする?
         # 渡されたstateを根として、末端まで辿っていく
-        # nodes = [Node(root, None)]
         root = Node(root_state, None)
 
         for _ in range(self.playout_limit):
             leaf_node = self.select(root)
 
             if leaf_node.num == 1:
-                # reward = self.playout(leaf_node)  # 最後まで実行して見て報酬を得る
-                # # leaf_nodeの先祖のnumに+1, leaf_nodeの先祖のrewardに+reward
-                # # leaf_node.num += 1
-                # # leaf_node.reward += reward
-                # leaf_node.update(reward)
-                # node = leaf_node
-                # while node.parent != None:
-                #     node = node.parent
-                #     node.update(reward)
                 self.back_propagation(leaf_node)
             else:  #拡張
                 self.expand(leaf_node)
-                # for node in nodes:
-                #     leaf_node.add_child(node)
                 if len(leaf_node.children) > 0:
                     node = leaf_node.children[0]
                     self.back_propagation(node)
@@ -99,15 +87,11 @@ class MCTSPlayer:
             board_c.flip(point)
             board_c.change_turn()
             leaf_node.add_child(board_c, point)
-        # node = leaf_node.children[0]
-        # self.back_propagation(node)
 
 
     def back_propagation(self, leaf_node):
         reward = self.playout(leaf_node)  # 最後まで実行して見て報酬を得る
         # leaf_nodeの先祖のnumに+1, leaf_nodeの先祖のrewardに+reward
-        # leaf_node.num += 1
-        # leaf_node.reward += reward
         leaf_node.update(reward)
         node = leaf_node
         while node.parent != None:
