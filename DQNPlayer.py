@@ -21,7 +21,6 @@ class DQNPlayer:
         self.myturn = turn
         self.enemyturn = 3 - turn
         self.model = MLP(128, 256, 64)
-        # serializers.load_npz("mymodel.npz", self.model)
 
         self.optimizer = optimizers.SGD()
         self.optimizer.setup(self.model)
